@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/style.css" type="text/css">
+	<link rel="stylesheet" href="/search.css" type="text/css">
+	<!--<link rel="icon" type="image/png" href="/img/32/favicon.png">-->
+	<title>{{$.Query}}</title>
+</head>
+<body class="flex-container-vertical">
+  <div class="sticky-top">
+	  <form action="/search" class="search">
+		  <input class="onHoverShadow" type="text" name="query" placeholder="Поиск" autocomplete="off" value="{{$.Query}}">
+	  </form>
+  </div>
+  <div class="sort-panel">
+    <b>Сортировка:</b>
+    <div>
+      {{if eq $.OrderBy "n"}}<b>{{end}}по имени{{if eq $.OrderBy "name"}}</b>{{end}}
+      <a href="/search?query={{$.Query}}&orderBy=name&orderDirection=asc">↑</a>
+      <a href="/search?query={{$.Query}}&orderBy=name&orderDirection=desc">↓</a>
+    </div>
+    <div>
+      {{if eq $.OrderBy "s"}}<b>{{end}}по размеру{{if eq $.OrderBy "size"}}</b>{{end}}
+      <a href="/search?query={{$.Query}}&orderBy=size&orderDirection=asc">↑</a>
+      <a href="/search?query={{$.Query}}&orderBy=size&orderDirection=desc">↓</a>
+    </div>
+    <div>
+      {{if eq $.OrderBy "t"}}<b>{{end}}по дате{{if eq $.OrderBy "time"}}</b>{{end}}
+      <a href="/search?query={{$.Query}}&orderBy=time&orderDirection=asc">↑</a>
+      <a href="/search?query={{$.Query}}&orderBy=time&orderDirection=desc">↓</a>
+    </div>
+  </div>
+	<ul class="searchResult">
+		{{range $value := .List}}<li>
+			<div><a href="/torrent?btih={{$value.BtihHex}}"><img src="/img/magnet.svg"> {{$value.Title}}</a></div>
+			<div class="row">
+				<div>{{$value.HumanTime}}</div>
+				<div>{{$value.HumanSize}}</div>
+				<div><a href="magnet:?xt=urn:btih:{{$value.BtihHex}}">Скачать</a></div>
+			</div>
+		</li>{{else}}Нет результатов.{{end}}
+	</ul>
+</body>
+</html>

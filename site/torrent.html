@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/style.css" type="text/css">
+	<link rel="stylesheet" href="/torrent.css" type="text/css">
+	<!--<link rel="icon" type="image/png" href="/img/32/favicon.png">-->
+	<title>{{$.Title}}</title>
+</head>
+<body class="flex-container-vertical">
+	<div>{{$.Body}}</div>
+	<div class="sticky-bottom">
+		<div class="space"><b>Опубликовано:</b> {{$.HumanTime}}</div>
+		<div class="space"><b>Размер:</b> {{$.HumanSize}}</div>
+		<div class="space"><a href="magnet:?xt=urn:btih:{{$.BtihHex}}">Скачать</a></div>
+	</div>
+</body>
+</html>

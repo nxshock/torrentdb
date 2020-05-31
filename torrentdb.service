@@ -1,0 +1,25 @@
+[Unit]
+Description=torrentdb service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=torrentdb
+CapabilityBoundingSet=
+DevicePolicy=closed
+PrivateDevices=true
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateUsers=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ProtectHostname=true
+ExecStart=/usr/bin/torrentdb
+
+[Install]
+WantedBy=multi-user.target

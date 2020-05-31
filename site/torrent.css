@@ -1,0 +1,50 @@
+body > div:first-child {
+	padding: 1em;
+}
+
+.post-b, .sp-head {
+	font-weight: bold;
+}
+
+.sp-wrap {
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.10);
+	padding: 1em;
+}
+
+.sp-body {
+	overflow-y: hidden;
+	overflow-x: auto;
+}
+
+.sp-body > .post-pre {
+	font-family: monospace;
+}
+
+.sp-body img {
+	display: inline;
+}
+
+body > div:nth-child(2) {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-between;
+	background-color: #eee;
+}
+
+/*body > div:nth-child(2) > div {
+	margin: 1em;
+	vertical-align: middle;
+}*/
+
+img {
+	max-width: 30%;
+}
+
+span.post-align {
+	display: block;
+}
+
+var.img-right > img {
+	float: right;
+}
