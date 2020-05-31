@@ -5,12 +5,13 @@ After=network.target postgresql.service
 [Service]
 Type=simple
 User=torrentdb
-CapabilityBoundingSet=
+SecureBits=keep-caps
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 DevicePolicy=closed
 PrivateDevices=true
 PrivateTmp=true
 NoNewPrivileges=true
-PrivateUsers=true
 ProtectClock=true
 ProtectControlGroups=true
 ProtectHome=true
