@@ -14,12 +14,12 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/text/encoding/charmap"
-
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/nxshock/torrentdb/torrent"
 	"golang.org/x/net/proxy"
+	"golang.org/x/text/encoding/charmap"
+
+	"github.com/nxshock/torrentdb/torrent"
 )
 
 const urlMask = "https://rutracker.org/forum/viewtopic.php?t=%d"
@@ -29,12 +29,18 @@ type Parser struct {
 }
 
 func newParser(socksProxyAddress string) (*Parser, error) {
-	dialer, err := proxy.SOCKS5("tcp", socksProxyAddress, nil, proxy.Direct)
-	if err != nil {
-		return nil, err
+	httpTransport := http.DefaultTransport
+
+	if socksProxyAddress != "" {
+		dialer, err := proxy.SOCKS5("tcp", socksProxyAddress, nil, proxy.Direct)
+		if err != nil {
+			return nil, err
+		}
+
+		httpTransport = &http.Transport{Dial: dialer.Dial}
 	}
 
-	parser := &Parser{httpClient: &http.Client{Transport: &http.Transport{Dial: dialer.Dial}}}
+	parser := &Parser{httpClient: &http.Client{Transport: httpTransport}}
 
 	return parser, nil
 }
