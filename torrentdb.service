@@ -19,7 +19,7 @@ ProtectKernelModules=true
 ProtectKernelTunables=true
 ProtectSystem=strict
 ProtectHostname=true
-ExecStart=/usr/bin/torrentdb
+ExecStart=/usr/bin/torrentdb daemon
 
 [Install]
 WantedBy=multi-user.target
