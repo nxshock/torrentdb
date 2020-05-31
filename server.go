@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday/v2"
 
 	"github.com/nxshock/torrentdb/torrent"
 )
