@@ -18,16 +18,17 @@ var templates *template.Template
 func initServer() {
 	templatesDir := filepath.Join(config.Main.SiteDir)
 
-	log.Printf("Чтение списка шаблонов из %s...", templatesDir)
+	log.Printf("Reading list of templates from %s...", templatesDir)
 	files, err := filepath.Glob(filepath.Join(templatesDir, "*.html"))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println("Чтение списка шаблонов завершено.")
+	log.Printf("Found %d templates.", len(files))
 
+	log.Printf("Reading templates data...")
 	templates, err = template.New("").ParseFiles(files...)
 	if err != nil {
-		log.Fatalln(">", err)
+		log.Fatalln("read template error:", err)
 	}
 
 	http.HandleFunc("/torrent", torrentHandler)
@@ -37,7 +38,7 @@ func initServer() {
 	go func() {
 		err := http.ListenAndServe(":80", nil)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("listen http port error:", err)
 		}
 	}()
 }

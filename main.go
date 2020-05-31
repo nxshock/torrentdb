@@ -28,7 +28,7 @@ func init() {
 
 	err := initDb()
 	if err != nil {
-		log.Fatalln("ошибка при подключении к базе данных: %v", err)
+		log.Fatalln("Connect database error: %v", err)
 	}
 
 	switch os.Args[1] {
@@ -44,13 +44,10 @@ func main() {
 	case "update-all":
 		updateAll()
 	default:
-		log.Fatalf("unknown command: %s", os.Args[1])
+		log.Fatalf("Unknown command: %s", os.Args[1])
 	}
 
-	err := db.Close()
-	if err != nil {
-		log.Fatalln("ошибка при закрытии подключения к базе данных: %v", err)
-	}
+	db.Close()
 }
 
 func printUsage() {

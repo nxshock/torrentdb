@@ -30,7 +30,7 @@ func updateAll() {
 	for _, driverName := range drivers {
 		err := update(driverName)
 		if err != nil {
-			log.Printf("ошибка при обновлении %s: %v", driverName, err)
+			log.Printf("Update %s torrent data error: %v", driverName, err)
 		}
 	}
 }
@@ -74,7 +74,7 @@ func update(driverName string) error {
 
 	wg.Wait()
 
-	log.Printf("Обновление данных %s завершено. Добавлено торрентов: %d, ошибок: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - 1 - int(errorCount)), errorCount)
+	log.Printf("Update of %s completed. New torrents: %d, errors: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - 1 - int(errorCount)), errorCount)
 
 	return nil
 }
