@@ -1,0 +1,11 @@
+[Main]
+SiteDir = ""
+ProxyAddr = ""
+UpdateThreadCount = 16
+
+[Database]
+User = "postgres"
+Password = ""
+Host = "127.0.0.1"
+Port = 5432
+DbName = "postgres"
