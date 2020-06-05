@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -270,7 +269,5 @@ func (parser *Parser) MaxTorrentID() (int, error) {
 		maxID += group[0]
 	}
 
-	log.Printf("%+v", jResp)
-
-	return 5899829, nil
+	return 5904730, nil
 }
