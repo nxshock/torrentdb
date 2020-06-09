@@ -2,6 +2,7 @@ package rutracker
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,6 +54,11 @@ func (parser *Parser) Name() string {
 }
 
 func (parser *Parser) GetTorrentByID(id int) (*torrent.Torrent, error) {
+	torrent, err := parser.getTorrentInfoFromApi(id)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := parser.httpClient.Get(fmt.Sprintf(urlMask, id))
 	if err != nil {
 		return nil, err
@@ -69,37 +75,12 @@ func (parser *Parser) GetTorrentByID(id int) (*torrent.Torrent, error) {
 		return nil, err
 	}
 
-	title, err := parseTitle(bytes.NewReader(unicodeBytes))
-	if err != nil {
-		return nil, err
-	}
-
 	body, err := parseBody(bytes.NewReader(unicodeBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	magnet, err := parseMagnet(bytes.NewReader(unicodeBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	publicationTime, err := parsePublicationTime(bytes.NewReader(unicodeBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	size, err := parseSize(bytes.NewReader(unicodeBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	torrent := &torrent.Torrent{
-		Title:           title,
-		Body:            template.HTML(body),
-		Btih:            magnet,
-		PublicationTime: publicationTime,
-		Size:            size}
+	torrent.Body = template.HTML(body)
 
 	return torrent, nil
 }
@@ -151,99 +132,6 @@ func parseBody(r io.Reader) (string, error) {
 	return markdown, nil
 }
 
-func parseMagnet(r io.Reader) ([]byte, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return nil, err
-	}
-
-	magnetStr, exists := doc.Find("a.magnet-link").First().Attr("href")
-	if !exists {
-		return nil, errors.New("href attr does not exists")
-	}
-
-	magnet, err := torrent.ParseMagnet(magnetStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return magnet.UrnHash, nil
-}
-
-func parsePublicationTime(r io.Reader) (time.Time, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	timeStr := doc.Find("div.post_head > p.post-time > span.hl-scrolled-to-wrap > a.p-link").First().Text()
-	if timeStr == "" {
-		return time.Time{}, errors.New("time not found")
-	}
-
-	replaceMap := map[string]string{
-		"Янв": "Jan",
-		"Фев": "Feb",
-		"Мар": "Mar",
-		"Апр": "Apr",
-		"Май": "May",
-		"Июн": "Jun",
-		"Июл": "Jul",
-		"Авг": "Aug",
-		"Сен": "Sep",
-		"Окт": "Oct",
-		"Ноя": "Nov",
-		"Дек": "Dec"}
-
-	runes := []rune(timeStr)
-
-	timeStr = string(runes[:3]) + replaceMap[string(runes[3:6])] + string(runes[6:])
-
-	return time.ParseInLocation("02-Jan-06 15:04", timeStr, time.Local)
-}
-
-func parseSize(r io.Reader) (uint64, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return 0, err
-	}
-
-	sizeStr := doc.Find("fieldset.attach > div.attach_link.guest > ul.inlined.middot-separated > li").Eq(1).Text()
-	if sizeStr == "" {
-		return 0, errors.New("size tag not found")
-	}
-
-	fields := strings.Fields(sizeStr)
-	if l := len(fields); l != 2 {
-		return 0, fmt.Errorf("expeced 2 fields in size, got %d", l)
-	}
-
-	f, err := strconv.ParseFloat(fields[0], 10)
-	if err != nil {
-		return 0, err
-	}
-
-	var m uint64
-	switch fields[1] {
-	case "B":
-		m = 1
-	case "KB":
-		m = 1024
-	case "MB":
-		m = 1024 * 1024
-	case "GB":
-		m = 1024 * 1024 * 1024
-	case "TB":
-		m = 1024 * 1024 * 1024 * 1024
-	case "PB":
-		m = 1024 * 1024 * 1024 * 1024
-	default:
-		return 0, fmt.Errorf("unknown multyplier: %s", fields[1])
-	}
-
-	return uint64(f * float64(m)), nil
-}
-
 // TODO: без регистрации на сайте не работает, требуется альтернативный алгоритм
 func (parser *Parser) MaxTorrentID() (int, error) {
 	type Resp struct {
@@ -269,5 +157,47 @@ func (parser *Parser) MaxTorrentID() (int, error) {
 		maxID += group[0]
 	}
 
-	return 5904730, nil
+	return 5905091, nil
+}
+
+func (parser *Parser) getTorrentInfoFromApi(id int) (*torrent.Torrent, error) {
+	type ApiResp struct {
+		Result map[int]*struct {
+			InfoHash   string  `json:"info_hash"`
+			ForumID    int     `json:"forum_id"`
+			Size       float64 `json:"size"`
+			RegTime    int64   `json:"reg_time"`
+			TopicTitle string  `json:"topic_title"`
+		}
+	}
+
+	resp, err := parser.httpClient.Get("http://api.rutracker.org/v1/get_tor_topic_data?by=topic_id&val=" + strconv.Itoa(id))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var apiResp ApiResp
+	err = json.NewDecoder(resp.Body).Decode(&apiResp)
+	if err != nil {
+		return nil, err
+	}
+
+	info := apiResp.Result[id]
+	if info == nil {
+		return nil, errors.New("no such torrent")
+	}
+
+	urnHash, err := hex.DecodeString(info.InfoHash)
+	if info == nil {
+		return nil, fmt.Errorf("wrong urn hash: %v", err)
+	}
+
+	t := &torrent.Torrent{
+		Title:           info.TopicTitle,
+		Size:            uint64(info.Size),
+		PublicationTime: time.Unix(info.RegTime, 0),
+		Btih:            urnHash}
+
+	return t, nil
 }
