@@ -36,24 +36,24 @@ type DatabaseConfig struct {
 	DbName   string
 }
 
-func initConfig(configFilePath string) {
+func initConfig(configFilePath string) error {
 	absConfigFilePath, err := filepath.Abs(configFilePath)
 	if err != nil {
-		absConfigFilePath = configFilePath
+		return err
 	}
 
 	log.Printf("Reading config file: %s...", absConfigFilePath)
 
 	_, err = toml.DecodeFile(defaultConfigPath, &config)
 	if err != nil {
-		log.Fatalln("read config error:", err)
+		return err
 	}
 
 	config.ApplyDefaults()
 
 	err = config.Validate()
 	if err != nil {
-		log.Fatalln("validate config error:", err)
+		return err
 	}
 }
 

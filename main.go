@@ -22,7 +22,10 @@ func init() {
 	}
 
 	// TODO: init config from specified param?
-	initConfig(defaultConfigPath)
+	err := initConfig(defaultConfigPath)
+	if err != nil {
+		log.Fatalln("Read config error: %v", err)
+	}
 
 	err := initDb()
 	if err != nil {
