@@ -49,15 +49,15 @@ func initConfig(configFilePath string) {
 		log.Fatalln("read config error:", err)
 	}
 
+	config.ApplyDefaults()
+
 	err = config.Validate()
 	if err != nil {
 		log.Fatalln("validate config error:", err)
 	}
 }
 
-func (config *Config) Validate() error {
-	log.Println("Validating config...")
-
+func (config *Config) ApplyDefaults() {
 	if config.Main.SiteDir == "" {
 		config.Main.SiteDir = defaultSitePath
 	}
@@ -66,16 +66,20 @@ func (config *Config) Validate() error {
 		config.Main.UpdateThreadCount = 1
 	}
 
-	if config.Database.User == "" {
-		return errors.New("empty database username, check config.Database.User field")
-	}
-
 	if config.Database.Host == "" {
 		config.Database.Host = "localhost"
 	}
 
 	if config.Database.Port == 0 {
 		config.Database.Port = 5432
+	}
+}
+
+func (config *Config) Validate() error {
+	log.Println("Validating config...")
+
+	if config.Database.User == "" {
+		return errors.New("empty database username, check config.Database.User field")
 	}
 
 	if config.Database.DbName == "" {
