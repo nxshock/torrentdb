@@ -9,6 +9,8 @@ import (
 	"github.com/nxshock/torrentdb/sources"
 )
 
+var errDatabaseIsUpToDate = errors.New("database is up to date")
+
 func parserThread(source sources.Source, c chan int, wg *sync.WaitGroup, errorCount *int64) {
 	defer wg.Done()
 
@@ -29,7 +31,9 @@ func updateAll() {
 	drivers := sources.RegisteredDrivers()
 	for _, driverName := range drivers {
 		err := update(driverName)
-		if err != nil {
+		if err == errDatabaseIsUpToDate {
+			log.Printf("%s: %v", driverName, err)
+		} else if err != nil {
 			log.Printf("Update %s torrent data error: %v", driverName, err)
 		}
 	}
@@ -51,7 +55,7 @@ func update(driverName string) error {
 	}
 
 	if maxDbTorrentID >= maxSourceTorrentID {
-		return errors.New("database is up to date")
+		return errDatabaseIsUpToDate
 	}
 
 	log.Printf("Обновление данных %s с %d по %d", driverName, maxDbTorrentID+1, maxSourceTorrentID)

@@ -45,6 +45,7 @@ func init() {
 
 func main() {
 	var err error
+	var exitCode int = 0
 
 	switch os.Args[1] {
 	case "daemon":
@@ -59,11 +60,14 @@ func main() {
 
 	db.Close()
 
-	if err != nil {
+	if err != nil && err != errDatabaseIsUpToDate {
 		log.Println(err)
-		os.Exit(1)
+		exitCode = 1
 	}
 
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
 }
 
 func printUsage() {
