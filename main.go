@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -20,11 +21,8 @@ func init() {
 		os.Exit(1)
 	}
 
-	if len(os.Args) > 2 {
-		initConfig(os.Args[2])
-	} else {
-		initConfig(defaultConfigPath)
-	}
+	// TODO: init config from specified param?
+	initConfig(defaultConfigPath)
 
 	err := initDb()
 	if err != nil {
@@ -35,27 +33,46 @@ func init() {
 	case "daemon":
 		initServer()
 	}
+
+	switch os.Args[1] {
+	case "update":
+		if len(os.Args) != 3 {
+			printUsage()
+			os.Exit(1)
+		}
+	}
 }
 
 func main() {
+	var err error
+
 	switch os.Args[1] {
 	case "daemon":
 		wait()
 	case "update-all":
 		updateAll()
+	case "update":
+		err = update(os.Args[2])
 	default:
-		log.Fatalf("Unknown command: %s", os.Args[1])
+		err = fmt.Errorf("unknown command: %s", os.Args[1])
 	}
 
 	db.Close()
+
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 }
 
 func printUsage() {
 	binName := filepath.Base(os.Args[0])
 
 	log.Println("Usage:")
-	log.Printf("%s daemon     [config file path] - start http server", binName)
-	log.Printf("%s update-all [config file path] - update database data", binName)
+	log.Printf("%s daemon               - start http server", binName)
+	log.Printf("%s update [source_name] - update specified database data", binName)
+	log.Printf("%s update-all           - update database data", binName)
 }
 
 func wait() { // TODO: нужно имя получше
