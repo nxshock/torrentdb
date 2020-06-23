@@ -27,7 +27,7 @@ func init() {
 		log.Fatalln("Read config error: %v", err)
 	}
 
-	err := initDb()
+	err = initDb()
 	if err != nil {
 		log.Fatalln("Connect database error: %v", err)
 	}

@@ -55,6 +55,8 @@ func initConfig(configFilePath string) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
 }
 
 func (config *Config) ApplyDefaults() {
