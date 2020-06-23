@@ -50,7 +50,7 @@ func Open(driverName, params string) (Source, error) {
 	driveri, ok := sourcesMap[driverName]
 	sourcesMutex.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("sources: unknown driver %q (forgotten import?)", driverName)
+		return nil, fmt.Errorf(`unknown driver "%q" (forgotten import?)`, driverName)
 	}
 
 	return driveri.Open(params)
