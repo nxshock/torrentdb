@@ -123,7 +123,7 @@ func (database *Database) SearchTorrentsByTitle(query string, sortField SortFiel
 
 func (database *Database) GetMaxTorrentID(sourceID int) (int, error) {
 	var maxTorrentID int
-	err := database.db.QueryRow("SELECT max(topic_id) FROM info WHERE source_id = $1", sourceID).Scan(&maxTorrentID)
+	err := database.db.QueryRow("SELECT COALESCE(max(topic_id), 0) FROM info WHERE source_id = $1", sourceID).Scan(&maxTorrentID)
 	if err != nil {
 		return 0, err
 	}
