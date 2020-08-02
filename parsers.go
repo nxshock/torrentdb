@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 	"sync"
@@ -11,7 +12,7 @@ import (
 
 var errDatabaseIsUpToDate = errors.New("database is up to date")
 
-func parserThread(source sources.Source, c chan int, wg *sync.WaitGroup, errorCount *int64) {
+func parserThread(transaction *sql.Tx, source sources.Source, c chan int, wg *sync.WaitGroup, errorCount *int64) {
 	defer wg.Done()
 
 	for id := range c {
@@ -20,7 +21,7 @@ func parserThread(source sources.Source, c chan int, wg *sync.WaitGroup, errorCo
 			atomic.AddInt64(errorCount, 1)
 			continue
 		}
-		err = db.InsertTorrent(source.ID(), id, torrent)
+		err = db.InsertTorrent(transaction, source.ID(), id, torrent)
 		if err != nil {
 			log.Println(err)
 		}
@@ -66,8 +67,14 @@ func update(driverName string) error {
 
 	wg := new(sync.WaitGroup)
 	wg.Add(config.Main.UpdateThreadCount)
+
+	tx, err := db.db.Begin()
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < config.Main.UpdateThreadCount; i++ {
-		go parserThread(source, c, wg, &errorCount)
+		go parserThread(tx, source, c, wg, &errorCount)
 	}
 
 	for i := maxDbTorrentID + 1; i <= maxSourceTorrentID; i++ {
@@ -77,6 +84,11 @@ func update(driverName string) error {
 	close(c)
 
 	wg.Wait()
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 
 	log.Printf("Update of %s completed. New torrents: %d, errors: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - 1 - int(errorCount)), errorCount)
 
