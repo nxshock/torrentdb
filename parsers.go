@@ -94,7 +94,7 @@ func update(driverName string) error {
 		return err
 	}
 
-	log.Printf("Update of %s completed. New torrents: %d, errors: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - 1 - int(errorCount)), errorCount)
+	log.Printf("Update of %s completed. New torrents: %d, errors: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - int(errorCount)), errorCount)
 
 	return nil
 }
