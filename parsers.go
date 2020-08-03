@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+	"os"
 	"sync"
 	"sync/atomic"
 
@@ -78,8 +80,10 @@ func update(driverName string) error {
 	}
 
 	for i := maxDbTorrentID + 1; i <= maxSourceTorrentID; i++ {
+		fmt.Fprintf(os.Stderr, "\rProcessing %d / %d...", i, maxSourceTorrentID-maxDbTorrentID+1)
 		c <- i
 	}
+	fmt.Fprintf(os.Stderr, "\n")
 
 	close(c)
 
