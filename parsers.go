@@ -80,7 +80,7 @@ func update(driverName string) error {
 	}
 
 	for i := maxDbTorrentID + 1; i <= maxSourceTorrentID; i++ {
-		fmt.Fprintf(os.Stderr, "\rProcessing %d / %d...", i, maxSourceTorrentID-maxDbTorrentID+1)
+		fmt.Fprintf(os.Stderr, "\rProcessing %d / %d...", i-maxDbTorrentID+1, maxSourceTorrentID-maxDbTorrentID+1)
 		c <- i
 	}
 	fmt.Fprintf(os.Stderr, "\n")
