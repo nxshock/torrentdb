@@ -94,7 +94,7 @@ func update(driverName string) error {
 		errorCount       int
 	)
 	for err := range errCounter {
-		if err == nil {
+		if err != nil {
 			errorCount++
 		} else {
 			newTorrentsCount++
