@@ -99,7 +99,7 @@ func update(driverName string) error {
 		} else {
 			newTorrentsCount++
 		}
-		fmt.Fprintf(os.Stderr, "\rProcessed %d / %d...", errorCount+newTorrentsCount, maxSourceTorrentID-maxDbTorrentID+1)
+		fmt.Fprintf(os.Stderr, "\rProcessed %d / %d (new torrents: %d, errors: %d)...", errorCount+newTorrentsCount, maxSourceTorrentID-maxDbTorrentID, newTorrentsCount, errorCount)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
@@ -108,7 +108,7 @@ func update(driverName string) error {
 		return err
 	}
 
-	log.Printf("Update of %s completed. New torrents: %d, errors: %d.", driverName, (maxSourceTorrentID - maxDbTorrentID - int(errorCount)), errorCount)
+	log.Printf("Update of %s completed.", driverName)
 
 	return nil
 }
