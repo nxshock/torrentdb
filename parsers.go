@@ -7,26 +7,27 @@ import (
 	"log"
 	"os"
 	"sync"
-	"sync/atomic"
 
 	"github.com/nxshock/torrentdb/sources"
 )
 
 var errDatabaseIsUpToDate = errors.New("database is up to date")
 
-func parserThread(transaction *sql.Tx, source sources.Source, c chan int, wg *sync.WaitGroup, errorCount *int64) {
+func parserThread(transaction *sql.Tx, source sources.Source, c chan int, wg *sync.WaitGroup, errChan chan error) {
 	defer wg.Done()
 
 	for id := range c {
 		torrent, err := source.GetTorrentByID(id)
 		if err != nil {
-			atomic.AddInt64(errorCount, 1)
+			errChan <- err
 			continue
 		}
 		err = db.InsertTorrent(transaction, source.ID(), id, torrent)
 		if err != nil {
-			log.Println(err)
+			errChan <- err
+			continue
 		}
+		errChan <- nil
 	}
 }
 
@@ -65,8 +66,6 @@ func update(driverName string) error {
 
 	c := make(chan int)
 
-	var errorCount int64
-
 	wg := new(sync.WaitGroup)
 	wg.Add(config.Main.UpdateThreadCount)
 
@@ -75,19 +74,34 @@ func update(driverName string) error {
 		return err
 	}
 
+	errCounter := make(chan error)
+
 	for i := 0; i < config.Main.UpdateThreadCount; i++ {
-		go parserThread(tx, source, c, wg, &errorCount)
+		go parserThread(tx, source, c, wg, errCounter)
 	}
 
-	for i := maxDbTorrentID + 1; i <= maxSourceTorrentID; i++ {
-		fmt.Fprintf(os.Stderr, "\rProcessing %d / %d...", i-maxDbTorrentID+1, maxSourceTorrentID-maxDbTorrentID+1)
-		c <- i
+	go func() {
+		for i := maxDbTorrentID + 1; i <= maxSourceTorrentID; i++ {
+			c <- i
+		}
+		close(c)
+		wg.Wait()
+		close(errCounter)
+	}()
+
+	var (
+		newTorrentsCount int
+		errorCount       int
+	)
+	for err := range errCounter {
+		if err == nil {
+			errorCount++
+		} else {
+			newTorrentsCount++
+		}
+		fmt.Fprintf(os.Stderr, "\rProcessed %d / %d...", errorCount+newTorrentsCount, maxSourceTorrentID-maxDbTorrentID+1)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
-
-	close(c)
-
-	wg.Wait()
 
 	err = tx.Commit()
 	if err != nil {
