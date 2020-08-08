@@ -39,7 +39,7 @@ func init() {
 
 	switch os.Args[1] {
 	case "update":
-		if len(os.Args) <= 3 {
+		if len(os.Args) <= 2 {
 			printUsage()
 			os.Exit(1)
 		}
