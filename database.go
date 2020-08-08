@@ -61,7 +61,15 @@ func (database *Database) SearchTorrentByBtih(btih []byte) (*torrent.Torrent, er
 	return t, nil
 }
 
-func (database *Database) InsertTorrent(transaction *sql.Tx, sourceID int, topicID int, torrent *torrent.Torrent) error {
+func (database *Database) InsertTorrent(sourceID int, topicID int, torrent *torrent.Torrent) error {
+	sql := "INSERT INTO info (source_id, topic_id, title, btih, description, publication_time, size) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+
+	_, err := db.db.Exec(sql, sourceID, topicID, torrent.Title, torrent.Btih, torrent.Body, torrent.PublicationTime, torrent.Size)
+
+	return err
+}
+
+func (database *Database) InsertTorrentWithTx(transaction *sql.Tx, sourceID int, topicID int, torrent *torrent.Torrent) error {
 	sql := "INSERT INTO info (source_id, topic_id, title, btih, description, publication_time, size) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 
 	_, err := transaction.Exec(sql, sourceID, topicID, torrent.Title, torrent.Btih, torrent.Body, torrent.PublicationTime, torrent.Size)

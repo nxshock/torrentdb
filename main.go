@@ -56,7 +56,11 @@ func main() {
 	case "update-all":
 		updateAll()
 	case "update":
-		err = update(os.Args[2])
+		if len(os.Args) > 3 {
+			err = update(os.Args[2], os.Args[3])
+		} else {
+			err = update(os.Args[2], "")
+		}
 	default:
 		err = fmt.Errorf("unknown command: %s", os.Args[1])
 	}
@@ -80,9 +84,9 @@ func printUsage() {
 	binName := filepath.Base(os.Args[0])
 
 	log.Println("Usage:")
-	log.Printf("%s daemon               - start http server", binName)
-	log.Printf("%s update [source_name] - update specified database data", binName)
-	log.Printf("%s update-all           - update database data", binName)
+	log.Printf("%s daemon                            - start http server", binName)
+	log.Printf("%s update [source_name] [torrent_id] - update specified database data", binName)
+	log.Printf("%s update-all                        - update database data", binName)
 }
 
 func wait() { // TODO: нужно имя получше

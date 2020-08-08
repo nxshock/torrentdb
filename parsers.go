@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/nxshock/torrentdb/sources"
@@ -22,7 +23,7 @@ func parserThread(transaction *sql.Tx, source sources.Source, c chan int, wg *sy
 			errChan <- err
 			continue
 		}
-		err = db.InsertTorrent(transaction, source.ID(), id, torrent)
+		err = db.InsertTorrentWithTx(transaction, source.ID(), id, torrent)
 		if err != nil {
 			errChan <- err
 			continue
@@ -34,7 +35,7 @@ func parserThread(transaction *sql.Tx, source sources.Source, c chan int, wg *sy
 func updateAll() {
 	drivers := sources.RegisteredDrivers()
 	for _, driverName := range drivers {
-		err := update(driverName)
+		err := update(driverName, "")
 		if err == errDatabaseIsUpToDate {
 			log.Printf("%s: %v", driverName, err)
 		} else if err != nil {
@@ -43,10 +44,28 @@ func updateAll() {
 	}
 }
 
-func update(driverName string) error {
+func update(driverName string, torrentNum string) error {
 	source, err := sources.Open(driverName, config.Main.ProxyAddr)
 	if err != nil {
 		return err
+	}
+
+	if torrentNum != "" {
+		id, err := strconv.Atoi(torrentNum)
+		if err != nil {
+			return err
+		}
+
+		torrent, err := source.GetTorrentByID(id)
+		if err != nil {
+			return err
+		}
+		err = db.InsertTorrent(source.ID(), id, torrent)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	maxDbTorrentID, err := db.GetMaxTorrentID(source.ID())
