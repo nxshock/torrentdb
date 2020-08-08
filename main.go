@@ -63,7 +63,10 @@ func main() {
 
 	db.Close()
 
-	if err != nil && err != errDatabaseIsUpToDate {
+	if err == errDatabaseIsUpToDate {
+		log.Println(err)
+		exitCode = 0
+	} else if err != nil {
 		log.Println(err)
 		exitCode = 1
 	}
