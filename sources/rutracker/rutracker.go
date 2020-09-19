@@ -157,7 +157,7 @@ func (parser *Parser) MaxTorrentID() (int, error) {
 		maxID += group[0]
 	}
 
-	return 5911479, nil
+	return 5943785, nil
 }
 
 func (parser *Parser) getTorrentInfoFromApi(id int) (*torrent.Torrent, error) {
